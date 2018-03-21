@@ -44,10 +44,74 @@ class CombinatoricGame:
                 self._graph.add_edge((player, state), (next_player, next_state))
 
     def _find_optimal_solution(self, keep_all_solutions=False):
-        solved_nodes = set(self._optimal_move_graph.nodes())
-        while solved_nodes:
-            for node in solved_nodes:
-                # editing here
+        new_solved_nodes = set(self._optimal_move_graph.nodes())
+        while new_solved_nodes:
+            # Get all of the parents of the recently solved nodes
+            candidate_nodes = set(pred_node for node in new_solved_nodes
+                                  for pred_node in self._graph.predecessors(node)
+                                  if pred_node not in self._optimal_move_graph)
+            new_solved_nodes = set()
+            for candidate_node in candidate_nodes:
+                winner, move_to_node = self._get_optimal_move(candidate_node)
+                if winner in {0, 1, 2}:
+                    self._optimal_move_graph.add_node(candidate_node,
+                                                      winner=winner)
+                    self._optimal_move_graph.add_edge(candidate_node,
+                                                      move_to_node)
+                    new_solved_nodes.add(candidate_node)
+
+        if len(self._graph) != len(self._optimal_move_graph):
+            raise NotSolvedException("Size of graph = {}, number solved = {}."\
+                                         .format(len(self._graph),
+                                                 len(self._optimal_move_graph)))
+
+        if keep_all_solutions:
+            # Go through all of the nodes and add all possible optimal moves
+            for node in self._graph:
+                for move_to_node in self._get_optimal_next_nodes(node):
+                    self._optimal_move_graph.add_edge(node, move_to_node)
+
+    def _get_optimal_move(self, node):
+        """Return the winner (None, 0, 1, or 2, with similar meaning to
+        the return value of _get_winner), and an optimal move for the
+        given node if it's possible to compute given the state of
+        self._optimal_move_graph.  If it's not possible to compute
+        at this point, return (None, None)."""
+        player, _ = node
+        other_player = 1 if player == 2 else 2
+        best_move = {}
+        unlabeled_successors = False
+        for succ_node in self._graph.successors(node):
+            if succ_node in self._optimal_move_graph:
+                winner = self._optimal_move_graph.node[succ_node]['winner']
+                if winner == player:
+                    # player can win, should move here
+                    return winner, succ_node
+                elif winner == 0:
+                    # draw
+                    best_move['winner'] = winner
+                    best_move['move_to_node'] = succ_node
+                else:
+                    # other player would win if you move here
+                    if best_move.get('winner', other_player) == other_player:
+                        best_move['winner'] = winner
+                        best_move['move_to_node'] = succ_node
+            else:
+                unlabeled_successors = True
+
+        if unlabeled_successors:
+            return None, None
+        else:
+            return best_move['winner'], best_move['move_to_node']
+
+    def _get_optimal_next_nodes(self, node):
+        """Get all possible moves that are still optimal.  Assumes that
+        self._optimal_move_graph is filled out with at least one
+        optimal move for each node."""
+        winner = self._optimal_move_graph.node[node]['winner']
+        return [succ_node for succ_node in self._graph.successors(node)
+                if winner == \
+                    self._optimal_move_graph.node[succ_node]['winner']]
 
     @abc.abstractmethod
     def _return_initial_state(self):
@@ -62,9 +126,12 @@ class CombinatoricGame:
         return
 
     @abc.abstractmethod
-    def _get_winner(player, state, next_state):
+    def _get_winner(self, player, state, next_state):
         """Returns which player wins, if any, if the given player
         moves so that the game goes from state to next_state.
+        Note that the output of this method should *only depend
+        on next_state*.  The player and state are provided as
+        a potential computational convenience.
         
         Specifically, should return:
         None if the game is still in play at next_state
@@ -72,3 +139,10 @@ class CombinatoricGame:
         1 if player one wins at next_state
         2 if player two wins at next_state"""
         return
+
+
+class NotSolvedException(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
