@@ -135,6 +135,9 @@ class CombinatoricGame:
         computational convenience. (It is okay for the output
         to depend on player, since this would be the same
         for any node with a link into next_state.)
+        It is assumed that at 'state' the game is still in
+        play (i.e. no winner at that state and it's not
+        a draw).
         
         Specifically, should return:
         None if the game is still in play at next_state
