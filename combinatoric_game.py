@@ -19,7 +19,7 @@ class CombinatoricGame:
         # Create the game graph by breadth first search
         start = (1, self._return_initial_state())
         queue = deque()
-        queue.apppend(start)
+        queue.append(start)
         self._graph.add_node(start)
         
         while queue:
