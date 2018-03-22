@@ -9,7 +9,7 @@ class CombinatoricGame:
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, graph_engine='networkx', keep_all_solutions=False):
-        graph_engines = {'networkx': NetworkxGraph}
+        graph_engines = {'networkx': nx.DiGraph}
         self._graph = graph_engines[graph_engine]()
         self._optimal_move_graph = graph_engines[graph_engine]()
         self._create_game_graph()
@@ -130,8 +130,11 @@ class CombinatoricGame:
         """Returns which player wins, if any, if the given player
         moves so that the game goes from state to next_state.
         Note that the output of this method should *only depend
-        on next_state*.  The player and state are provided as
-        a potential computational convenience.
+        on next_state, and possibly player, but not state*.
+        The state variable is provided as a potential
+        computational convenience. (It is okay for the output
+        to depend on player, since this would be the same
+        for any node with a link into next_state.)
         
         Specifically, should return:
         None if the game is still in play at next_state
