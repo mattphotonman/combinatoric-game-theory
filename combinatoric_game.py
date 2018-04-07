@@ -31,7 +31,7 @@ class CombinatoricGame:
             # should be appended to the queue.  Also add any
             # states to the end game sets if appropriate.
             for next_state in next_states:
-                if next_state in self._graph: continue
+                if (next_player, next_state) in self._graph: continue
                 winner = self._get_winner(player, state, next_state)
                 if winner in {0, 1, 2}:
                     self._optimal_move_graph.add_node((next_player, next_state),
