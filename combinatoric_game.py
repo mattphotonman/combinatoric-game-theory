@@ -19,7 +19,7 @@ class CombinatoricGame:
     def _create_game_graph(self):
         return
 
-    @abs.abstractmethod
+    @abc.abstractmethod
     def _find_optimal_solution(self, keep_all_solutions=False):
         return
 
