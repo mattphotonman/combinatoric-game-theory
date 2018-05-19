@@ -2,9 +2,9 @@
 Concrete class for N X N tic tac toe.
 """
 import numpy as np
-from combinatoric_game import CombinatoricGame
+from combinatoric_game import TwoPlayerCombinatoricGame
 
-class TicTacToe(CombinatoricGame):
+class TicTacToe(TwoPlayerCombinatoricGame):
     """
     Tic tac toe in two dimensions, with an N X N board.
     A player wins when they get N in a row.

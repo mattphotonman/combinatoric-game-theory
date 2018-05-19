@@ -1,2 +1,2 @@
 # combinatoric-game-theory
-Module to solve two player combinatoric games.
+Module to solve combinatoric games.

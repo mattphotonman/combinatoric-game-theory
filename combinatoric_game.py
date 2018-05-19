@@ -13,7 +13,122 @@ class CombinatoricGame:
         self._graph = graph_engines[graph_engine]()
         self._optimal_move_graph = graph_engines[graph_engine]()
         self._create_game_graph()
-        self._find_optimal_solution(keep_all_solutions=False)
+        self._find_optimal_solution(keep_all_solutions=keep_all_solutions)
+
+    @abc.abstractmethod
+    def _create_game_graph(self):
+        return
+
+    @abs.abstractmethod
+    def _find_optimal_solution(self, keep_all_solutions=False):
+        return
+
+class OnePlayerCombinatoricGame(CombinatoricGame):
+    __metaclass__ = abc.ABCMeta
+
+    def _create_game_graph(self):
+        # Create the game graph by breadth first search
+        start = self._return_initial_state()
+        queue = deque()
+        queue.append(start)
+        self._graph.add_node(start)
+
+        while queue:
+            state = queue.popleft()
+            next_states = self._return_next_states(state)
+
+            # Go through the next states and see which ones
+            # should be appended to the queue. Also add any
+            # states to the end game sets if appropriate.
+            for next_state in next_states:
+                if next_state in self._graph: continue
+                points = self._get_final_score(state, next_state)
+                if points is not None:
+                    # terminal state
+                    self._optimal_move_graph.add_node(next_state,
+                                                      value=points)
+                else:
+                    queue.append(next_state)
+
+            # Add edges from the current state to all of the next states
+            for next_state in next_states:
+                self._graph.add_edge(state, next_state)
+
+    def _find_optimal_solution(self, keep_all_solutions=False):
+        new_solved_nodes = set(self._optimal_move_graph.nodes())
+        while new_solved_nodes:
+            # Get all of the parents of the recently solved nodes
+            candidate_nodes = set(pred_node for node in new_solved_nodes
+                                  for pred_node in self._graph.predecessors(node)
+                                  if pred_node not in self._optimal_move_graph)
+            new_solved_nodes = set()
+            for candidate_node in candidate_nodes:
+                value, move_to_node = self._get_optimal_move(candidate_node)
+                if value is not None:
+                    self._optimal_move_graph.add_node(candidate_node,
+                                                      value=value)
+                    self._optimal_move_graph.add_edge(candidate_node,
+                                                      move_to_node)
+                    new_solved_nodes.add(candidate_node)
+
+        if len(self._graph) != len(self._optimal_move_graph):
+            raise NotSolvedException("Size of graph = {}, number solved = {}."\
+                                         .format(len(self._graph),
+                                                 len(self._optimal_move_graph)))
+
+        if keep_all_solutions:
+            # Go through all of the nodes and add all possible optimal moves
+            for node in self._graph:
+                for move_to_node in self._get_optimal_next_nodes(node):
+                    self._optimal_move_graph.add_edge(node, move_to_node)
+
+    def _get_optimal_move(self, node):
+        """Return the value of the node, and an optimal move for the given
+        node, if it's possible to compute given the state of
+        self._optimal_move_graph.  If it's not possible to compute
+        at this point, return (None, None)."""
+        if any(succ_node not in self._optimal_move_graph
+               for succ_node in self._graph.successors(node)):
+            return None, None
+
+        return max(((self._optimal_move_graph.node[succ_node]['value'], succ_node)
+                    for succ_node in self._graph.successors(node)),
+                   key=lambda (val, nd): val)
+
+    def _get_optimal_next_nodes(self, node):
+        """Get all possible moves that are still optimal.  Assumes that
+        self._optimal_move_graph is filled out with at least one
+        optimal move for each node."""
+        value = self._optimal_move_graph.node[node]['value']
+        return [succ_node for succ_node in self._graph.successors(node)
+                if value == self._optimal_move_graph.node[succ_node]['value']]
+
+    @abc.abstractmethod
+    def _return_initial_state(self):
+        """Returns the initial state of the game, from which
+        the player first moves."""
+        return
+
+    @abc.abstractmethod
+    def _return_next_states(self, state):
+        """Return the next states that it is possible to reach in
+        one move from the given state."""
+        return
+
+    @abc.abstractmethod
+    def _get_final_score(self, state, next_state):
+        """Returns the final score for the player if they
+        move from state to next_state, and next_state is
+        a terminal state.  (If next_state is not terminal,
+        then None is returned.)  Note that the outpt of
+        this method should *only depend on next_state*.
+        The state variable is provided as a potential
+        computational convenience. It is assumed that
+        'state' is not a terminal state."""
+        return
+
+class TwoPlayerCombinatoricGame(CombinatoricGame):
+    __metaclass__ = abc.ABCMeta
 
     def _create_game_graph(self):
         # Create the game graph by breadth first search
