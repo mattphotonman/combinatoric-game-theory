@@ -24,7 +24,7 @@ class TrianglePegBoard(OnePlayerCombinatoricGame):
                                                keep_all_solutions=keep_all_solutions)
 
     def _return_initial_state(self):
-        return (0,) + (1,)*self._N_base*(self._N_base+1)/2
+        return (0,) + (1,)*(self._N_base*(self._N_base+1)/2 - 1)
 
     def _return_next_states(self, state):
         return set(self._state_tuple(state_list)
@@ -72,7 +72,7 @@ class TrianglePegBoard(OnePlayerCombinatoricGame):
     def _all_transformation_lists(self, state_list):
         """Return the state lists that represent all symmetry
         transformations of the board, (rotations and reflections)."""
-        for rot_state_list in self._all_rotation_lists(state_lists):
+        for rot_state_list in self._all_rotation_lists(state_list):
             yield rot_state_list
             yield [list(reversed(x)) for x in rot_state_list]
 
