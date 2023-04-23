@@ -24,7 +24,7 @@ class TrianglePegBoard(OnePlayerCombinatoricGame):
                                                keep_all_solutions=keep_all_solutions)
 
     def _return_initial_state(self):
-        return (0,) + (1,)*(self._N_base*(self._N_base+1)/2 - 1)
+        return (0,) + (1,) * int(self._N_base*(self._N_base+1)/2 - 1)
 
     def _return_next_states(self, state):
         return set(self._state_tuple(state_list)
@@ -46,7 +46,7 @@ class TrianglePegBoard(OnePlayerCombinatoricGame):
         """Convert tuple state into a list of lists."""
         state_list = []
         idx = 0
-        for row_size in xrange(1, self._N_base+1):
+        for row_size in range(1, self._N_base+1):
             state_list.append(list(state[idx:idx+row_size]))
             idx += row_size
         return state_list
@@ -64,10 +64,10 @@ class TrianglePegBoard(OnePlayerCombinatoricGame):
         yield [list(x) for x in state_list]
         # 120 degree rotation
         yield [[row[idx] for row in state_list if len(row) > idx]
-               for idx in xrange(self._N_base-1, -1, -1)]
+               for idx in range(self._N_base-1, -1, -1)]
         # 240 degree rotation
         yield [[row[-idx] for row in reversed(state_list) if len(row) >= idx]
-               for idx in xrange(self._N_base, 0, -1)]
+               for idx in range(self._N_base, 0, -1)]
 
     def _all_transformation_lists(self, state_list):
         """Return the state lists that represent all symmetry
@@ -79,7 +79,7 @@ class TrianglePegBoard(OnePlayerCombinatoricGame):
     def _row_moves(self, row):
         """Return all possible new configurations of the given
         row after a move is made within the line of the row."""
-        for idx in xrange(len(row)-2):
+        for idx in range(len(row)-2):
             candidate = row[idx:idx+3]
             if candidate == [1,1,0]:
                 yield row[:idx] + [0,0,1] + row[idx+3:]

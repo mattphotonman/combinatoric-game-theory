@@ -35,7 +35,7 @@ class TicTacToe(TwoPlayerCombinatoricGame):
 
     def _return_next_state_arrs(self, player, state_arr):
         num_zeros = (state_arr == 0).sum()
-        next_state_arrs = [np.array(state_arr) for _ in xrange(num_zeros)]
+        next_state_arrs = [np.array(state_arr) for _ in range(num_zeros)]
         for arr, i, j in zip(next_state_arrs, *np.where(state_arr == 0)):
             arr[i,j] = player
         return next_state_arrs
@@ -73,6 +73,6 @@ class TicTacToe(TwoPlayerCombinatoricGame):
     def _state_tuple(self, state_arr):
         """Convert state array into a tuple.  Output the
         canonical rotation of the board."""
-        rotations = [np.rot90(state_arr, n) for n in xrange(4)]
+        rotations = [np.rot90(state_arr, n) for n in range(4)]
         rotations.extend([arr.transpose() for arr in rotations])
         return min(tuple(np.ravel(rt)) for rt in rotations)

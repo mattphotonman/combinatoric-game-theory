@@ -1,12 +1,11 @@
 """
-Base class for solving a two player combinatoric game.
+Base classes for solving one and two player combinatoric games.
 """
-import abc
+from abc import ABC, abstractmethod
 import networkx as nx
 from collections import deque
 
-class CombinatoricGame:
-    __metaclass__ = abc.ABCMeta
+class CombinatoricGame(ABC):
 
     def __init__(self, graph_engine='networkx', keep_all_solutions=False):
         graph_engines = {'networkx': nx.DiGraph}
@@ -15,16 +14,15 @@ class CombinatoricGame:
         self._create_game_graph()
         self._find_optimal_solution(keep_all_solutions=keep_all_solutions)
 
-    @abc.abstractmethod
+    @abstractmethod
     def _create_game_graph(self):
         return
 
-    @abc.abstractmethod
+    @abstractmethod
     def _find_optimal_solution(self, keep_all_solutions=False):
         return
 
 class OnePlayerCombinatoricGame(CombinatoricGame):
-    __metaclass__ = abc.ABCMeta
 
     def _create_game_graph(self):
         # Create the game graph by breadth first search
@@ -91,31 +89,31 @@ class OnePlayerCombinatoricGame(CombinatoricGame):
                for succ_node in self._graph.successors(node)):
             return None, None
 
-        return max(((self._optimal_move_graph.node[succ_node]['value'], succ_node)
+        return max(((self._optimal_move_graph.nodes[succ_node]['value'], succ_node)
                     for succ_node in self._graph.successors(node)),
-                   key=lambda (val, nd): val)
+                   key=lambda value_node_pair: value_node_pair[0])
 
     def _get_optimal_next_nodes(self, node):
         """Get all possible moves that are still optimal.  Assumes that
         self._optimal_move_graph is filled out with at least one
         optimal move for each node."""
-        value = self._optimal_move_graph.node[node]['value']
+        value = self._optimal_move_graph.nodes[node]['value']
         return [succ_node for succ_node in self._graph.successors(node)
-                if value == self._optimal_move_graph.node[succ_node]['value']]
+                if value == self._optimal_move_graph.nodes[succ_node]['value']]
 
-    @abc.abstractmethod
+    @abstractmethod
     def _return_initial_state(self):
         """Returns the initial state of the game, from which
         the player first moves."""
         return
 
-    @abc.abstractmethod
+    @abstractmethod
     def _return_next_states(self, state):
         """Return the next states that it is possible to reach in
         one move from the given state."""
         return
 
-    @abc.abstractmethod
+    @abstractmethod
     def _get_final_score(self, state, next_state):
         """Returns the final score for the player if they
         move from state to next_state, and next_state is
@@ -128,7 +126,6 @@ class OnePlayerCombinatoricGame(CombinatoricGame):
         return
 
 class TwoPlayerCombinatoricGame(CombinatoricGame):
-    __metaclass__ = abc.ABCMeta
 
     def _create_game_graph(self):
         # Create the game graph by breadth first search
@@ -198,7 +195,7 @@ class TwoPlayerCombinatoricGame(CombinatoricGame):
         unlabeled_successors = False
         for succ_node in self._graph.successors(node):
             if succ_node in self._optimal_move_graph:
-                winner = self._optimal_move_graph.node[succ_node]['winner']
+                winner = self._optimal_move_graph.nodes[succ_node]['winner']
                 if winner == player:
                     # player can win, should move here
                     return winner, succ_node
@@ -223,24 +220,24 @@ class TwoPlayerCombinatoricGame(CombinatoricGame):
         """Get all possible moves that are still optimal.  Assumes that
         self._optimal_move_graph is filled out with at least one
         optimal move for each node."""
-        winner = self._optimal_move_graph.node[node]['winner']
+        winner = self._optimal_move_graph.nodes[node]['winner']
         return [succ_node for succ_node in self._graph.successors(node)
                 if winner == \
-                    self._optimal_move_graph.node[succ_node]['winner']]
+                    self._optimal_move_graph.nodes[succ_node]['winner']]
 
-    @abc.abstractmethod
+    @abstractmethod
     def _return_initial_state(self):
         """Returns the initial state of the game, from which
         player 1 first moves."""
         return
 
-    @abc.abstractmethod
+    @abstractmethod
     def _return_next_states(self, player, state):
         """Return the next states that it is possible to reach in
         one move by the given player starting at the given state."""
         return
 
-    @abc.abstractmethod
+    @abstractmethod
     def _get_winner(self, player, state, next_state):
         """Returns which player wins, if any, if the given player
         moves so that the game goes from state to next_state.
